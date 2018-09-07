@@ -15,6 +15,9 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "lowdb": "^1.0.0",
+    "minimist": "^1.2.0",
+    "speakingurl": "^14.0.1",
     "vuido": "^0.2.0"
   },
   "devDependencies": {

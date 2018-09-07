@@ -1,0 +1,19 @@
+{
+    "accounts": [{
+        "id": "1",
+        "title": "Github",
+        "login": "homer.simpson",
+        "pass": "duffBeer",
+        "since": "2016-12-15",
+        "added": "2017-04-06",
+        "url": "github.com"
+    }, {
+        "id": "2",
+        "title": "Bandcamp",
+        "login": "philip.j",
+        "pass": "fry",
+        "since": "2015-04-06",
+        "added": "2017-04-06",
+        "url": "bandcamp.com"
+    }]
+}
