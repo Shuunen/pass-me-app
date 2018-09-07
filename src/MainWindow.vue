@@ -2,17 +2,25 @@
   <Window title="Pass Me - Your personal password manager" width="400" height="600" margined :close="exit">
     <Tab margined>
       <Box label="Passwords" vertical padded>
-        <TextInput v-model="filter"></TextInput>
+        <TextInput v-on:input="searchDebounced" type="search"></TextInput>
         <Separator horizontal/>
-        <Text>{{ filter.length ? 'Displaying results for "' + filter + '"' : 'Hint : type a word to filter out below results' }}</Text>
-        <Group :title="account.title" margined :key="account.id" v-for="account in accounts" v-if="filter.length ? match(account) : true">
-          <Box padded horizontal>
-            <TextInput v-model="account.login"></TextInput>
-            <TextInput v-model="account.pass"></TextInput>
-            <Button v-on:click="show(account)">{{ account.show ? ' Hide ' : ' Show ' }}</Button>
-            <Button v-if="changed(account)" v-on:click="update(account)">Update</Button>
+        <Group :title="account.title" margined :key="account.id" v-for="account in accounts" v-if="account.displayed">
+          <Box padded vertical>
+            <Box horizontal>
+              <TextInput v-model="account.login"></TextInput>
+              <TextInput v-model="account.pass"></TextInput>
+              <Button v-on:click="showPass(account)">{{ account.showPass ? ' Hide ' : ' Show ' }}</Button>
+              <Button v-if="changed(account)" v-on:click="update(account)">Update</Button>
+            </Box>
+            <Box horizontal>
+              <Box horizontal stretchy>
+                <Text>https://{{ account.url }}</Text>
+              </Box>
+              <Button> Open </Button>
+            </Box>
           </Box>
         </Group>
+        <Text v-if="found > config.entries">{{ `Hidding ${found - config.entries} results for a correct display` }}</Text>
       </Box>
       <Box label="Actions" padded>
         <Text>Display actions to be done</Text>
@@ -23,12 +31,14 @@
 
 <script>
 const getSlug = require('speakingurl')
+const debounce = require('lodash/debounce')
 const minimist = require('minimist')
 const low = require('lowdb')
 const FileSync = require('lowdb/adapters/FileSync')
 const config = minimist(process.argv.slice(2), {
   default: {
     path: './sample.json',
+    entries: 5,
     verbose: false,
   },
 })
@@ -49,7 +59,9 @@ try {
     let infosRequired = ['login', 'pass', 'url', 'since']
     accounts.forEach(function (account) {
       let noError = true
-      account.show = false
+      account.displayed = true
+      account.showPass = false
+      account.slug = getSlug(account.title + ' ' + account.url + ' ' + account.comment)
       infosRequired.forEach((infoRequired) => {
         if (!account[infoRequired] || !account[infoRequired].length) {
           console.error('Missing "' + infoRequired + '" on account : "' + account.title + '"')
@@ -73,9 +85,16 @@ export default {
   data() {
     return {
       accounts,
-      filter: '',
+      config,
+      found: 0,
+      searchDebounced: null,
+      total: accounts.length,
       error: false
     };
+  },
+   created() {
+    this.searchDebounced = debounce(this.search, 500)
+    this.searchDebounced('')
   },
   methods: {
     exit() {
@@ -84,23 +103,30 @@ export default {
     changed(account) {
       const loginChanged = (account.loginSource !== account.login)
       const passChanged = (account.passSource !== account.pass)
-      return account.show && (loginChanged || passChanged)
-    },
-    match(account){
-      const str = getSlug(account.title + ' ' + account.url + ' ' + account.comment)
-      return str.indexOf(getSlug(this.filter)) !== -1
+      return account.showPass && (loginChanged || passChanged)
     },
     update(account){
       console.log('updating account : ' + account.title)
     },
-    show(account) {
-      account.show = !account.show
-      if(account.show){
-        account.pass = account.passSource
-      } else {
-        account.pass = '*****'
-      }
+    showPass(account) {
+      account.showPass = !account.showPass
+      account.pass = account.showPass ? account.passSource : '*****'
+    },
+    search(value) {
+      const filter = getSlug(value)
+      let slots = parseInt(config.entries)
+      // console.log('slots available : ' + slots)
+      this.found = accounts.filter(account => {
+        const match = (account.slug.indexOf(filter) !== -1)
+        account.displayed = false
+        if(slots && match){
+          slots--
+          account.displayed = true
+        }
+        return match
+      }).length
+      // console.log('search found : ' + this.found)
     }
-  },
+  }
 };
 </script>
