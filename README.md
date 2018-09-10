@@ -8,11 +8,13 @@
 # install dependencies
 yarn install
 
-# build
-yarn build
+# serve with hot reload at localhost:9080
+yarn dev
 
-# run the bundled script
-yarn start
+# build NW.js application for production
+yarn build
 ```
 
-For detailed explanation on how things work, consult the [Vuido documentation](https://vuido.mimec.org/).
+---
+
+This project was generated with [nwjs-vue](https://github.com/elegantweb/nwjs-vue) using [vue-cli](https://github.com/vuejs/vue-cli).
