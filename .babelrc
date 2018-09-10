@@ -1,12 +1,12 @@
 {
-  "presets": [
-    [ "env", {
-      "targets": {
-        "node": 8
-      },
-      "modules": false,
-      "useBuiltIns": true
-    } ]
-  ],
+   "plugins": ["transform-runtime"],
+  "env": {
+    "main": {
+      "presets": [["env", { "modules": false }], "stage-0"]
+    },
+    "bg": {
+      "presets": [["env", { "modules": false }], "stage-0"]
+    }
+  },
   "comments": false
 }
