@@ -8,60 +8,15 @@
 </template>
 
 <script>
-
 import Account from './Account'
-
-const getSlug = require('speakingurl')
+import { eventBus } from '../store'
 const debounce = require('lodash/debounce')
-const minimist = require('minimist')
-const low = require('lowdb')
-const FileSync = require('lowdb/adapters/FileSync')
-const config = minimist(process.argv.slice(2), {
-  default: {
-    path: './sample.json',
-    verbose: false,
-  },
-})
-// console.log('start with process.argv', process.argv)
-console.log('start with config', config)
-let adapter = null
-let db = null
-let accounts = []
-try {
-  adapter = new FileSync(config.path)
-  db = low(adapter)
-  accounts = db.get('accounts').value()
-  if (!accounts.length) {
-    console.error('Missing accounts in : ' + config.path)
-    process.exit(1)
-  } else {
-    console.log('Found ' + accounts.length + ' accounts in : ' + config.path)
-    let infosRequired = ['login', 'pass', 'url', 'since']
-    accounts.forEach(function (account) {
-      let noError = true
-      account.showPass = false
-      account.slug = getSlug(account.title + ' ' + account.url + ' ' + account.comment)
-      infosRequired.forEach((infoRequired) => {
-        if (!account[infoRequired] || !account[infoRequired].length) {
-          console.error('Missing "' + infoRequired + '" on account : "' + account.title + '"')
-          noError = false
-        }
-      })
-      if (noError) {
-        account.loginSource = account.login
-        account.passSource = account.pass
-      }
-    })
-  }
-} catch (e) {
-  console.error('Db init failed : ', e.message)
-  process.exit(1)
-}
+const getSlug = require('speakingurl')
 
 export default {
   data () {
     return {
-      accounts,
+      accounts: [],
       filter: '',
       filterSlug: ''
     }
@@ -69,6 +24,13 @@ export default {
   created () {
     this.filterAccountsDebounced = debounce(this.filterAccounts, 300)
     this.filterAccountsDebounced('')
+
+    eventBus.$on('fetched-accounts', accounts => {
+      console.log('account list fetched', accounts.length, 'accounts')
+      this.accounts = accounts
+    })
+
+    eventBus.$emit('load-path', './sample.json')
   },
   methods: {
     filterAccounts (value) {

@@ -1,5 +1,6 @@
 <template>
   <div id="landing-page" class="parent-height">
+    <DropZone />
     <div class="col parent-height">
       <h1>{{ title }}</h1>
       <h2>{{ subtitle }}</h2>
@@ -11,6 +12,7 @@
 
 <script>
 import AccountList from './AccountList'
+import DropZone from './DropZone'
 
 export default {
   name: 'landing-page',
@@ -20,7 +22,7 @@ export default {
       subtitle: 'Your personal password manager'
     }
   },
-  components: { AccountList }
+  components: { AccountList, DropZone }
 }
 </script>
 
